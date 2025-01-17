@@ -1,4 +1,12 @@
-import { TruvityClient, LinkedCredential, VcContext, VcLinkedCredentialClaim, VcNotEmptyClaim } from '@truvity/sdk';
+import {
+    TruvityClient,
+    LinkedCredential,
+    VcContext,
+    VcLinkedCredentialClaim,
+    VcNotEmptyClaim,
+    VcLinkedFileClaim,
+    LinkedFile,
+} from '@truvity/sdk';
 
 // --- Documents schemas ---
 
@@ -21,6 +29,10 @@ class PurchaseRequest {
 class PurchasedTicked {
     @VcNotEmptyClaim
     flightNumber!: string;
+
+    @VcNotEmptyClaim
+    @VcLinkedFileClaim
+    paperVersion!: LinkedFile;
 }
 
 @VcContext({
@@ -29,11 +41,11 @@ class PurchasedTicked {
 })
 class PurchaseResponse {
     @VcNotEmptyClaim
-    @VcLinkedCredentialClaim(PurchaseRequest)
+    @VcLinkedCredentialClaim
     request!: LinkedCredential<PurchaseRequest>;
 
     @VcNotEmptyClaim
-    @VcLinkedCredentialClaim(PurchasedTicked)
+    @VcLinkedCredentialClaim
     ticket!: LinkedCredential<PurchasedTicked>;
 
     @VcNotEmptyClaim
@@ -59,20 +71,19 @@ const { id: airlineDid } = await airlineClient.dids.didDocumentSelfGet();
 {
     const purchaseRequest = timClient.createVcDecorator(PurchaseRequest);
 
-    const purchaseRequestDraft = await purchaseRequest.create({
-        claims: {
-            firstName: 'Tim',
-            lastName: 'Dif',
-        },
-    });
-
+    // Generating a new cryptographic key pair for Tim
     const timKey = await timClient.keys.keyGenerate({
         data: {
             type: 'ED25519',
         },
     });
 
-    const purchaseRequestVc = await purchaseRequestDraft.issue(timKey.id);
+    const purchaseRequestVc = await purchaseRequest.issue(timKey.id, {
+        claims: {
+            firstName: 'Tim',
+            lastName: 'Dif',
+        },
+    });
 
     await purchaseRequestVc.send(airlineDid, timKey.id);
 }
@@ -92,8 +103,8 @@ const { id: airlineDid } = await airlineClient.dids.didDocumentSelfGet();
         },
     });
 
-    // Searching for tickets purchase request VCs
-    const purchaseRequestResults = await airlineClient.credentials.credentialSearch({
+    // Searching for unprocessed tickets purchase request VCs
+    const unprocessedPurchaseRequests = await airlineClient.credentials.credentialSearch({
         filter: [
             {
                 data: {
@@ -102,37 +113,27 @@ const { id: airlineDid } = await airlineClient.dids.didDocumentSelfGet();
                         values: [purchaseRequest.getCredentialTerm()],
                     },
                 },
-            },
-        ],
-    });
-
-    // Searching for ticket purchase response VCs. We'll use it to calculate unprocessed requests
-    const fulfilledRequests = await airlineClient.credentials.credentialSearch({
-        filter: [
-            {
-                data: {
-                    type: {
-                        operator: 'IN',
-                        values: [purchaseResponse.getCredentialTerm()],
+                labels: [
+                    {
+                        operator: 'IS_NULL',
+                        key: 'processedAt',
                     },
-                },
+                ],
             },
         ],
     });
 
-    // Calculating unprocessed requests
-    const unfulfilledRequests = purchaseRequestResults.items.filter((request) => {
-        const { linkedId: requestLinkedId } = LinkedCredential.normalizeLinkedCredentialId(request.id);
+    const unprocessedRequestsCount = unprocessedPurchaseRequests.items.length;
 
-        const isLinkedToResponse = fulfilledRequests.items.some((response) =>
-            response.data.linkedCredentials?.includes(requestLinkedId),
-        );
-
-        return !isLinkedToResponse;
-    });
+    console.info(`Unprocessed purchase requests count: ${unprocessedRequestsCount}`);
 
     // Processing new requests
-    for (const item of unfulfilledRequests) {
+    for (let i = 0; i < unprocessedRequestsCount; i++) {
+        const item = unprocessedPurchaseRequests.items[i];
+        const itemNumber = i + 1;
+
+        console.info(`Starting processing purchase request: ${item.id} (${itemNumber}/${unprocessedRequestsCount})`);
+
         // Converting API resource to UDT to enable additional API for working with the content of the VC
         const purchaseRequestVc = purchaseRequest.map(item);
 
@@ -150,23 +151,59 @@ const { id: airlineDid } = await airlineClient.dids.didDocumentSelfGet();
                 flightNumber: '123',
             },
         });
-        const ticketVc = await ticketDraft.issue(airlineKey.id);
 
-        const responseDraft = await purchaseResponse.create({
+        // We can always access previously filled-in claims
+        const ticketClaims = await ticketDraft.getClaims();
+
+        // Rendering a "PDF" with the ticket information. For the sake of the demo, we're going to use the `txt` format
+        const ticketPaperDocument = Buffer.from(`Your flight number: ${ticketClaims.flightNumber}`, 'utf8');
+
+        // Uploading the created "PDF" to the API
+        const ticketPaperVersion = await airlineClient.createLinkedFile(ticketPaperDocument, {
+            filename: 'ticket.txt',
+        });
+
+        const updatedTicketDraft = await ticketDraft.update({
+            claims: {
+                paperVersion: ticketPaperVersion, // linking uploaded "PDF"
+            },
+        });
+
+        const ticketVc = await updatedTicketDraft.issue(airlineKey.id);
+
+        const responseVc = await purchaseResponse.issue(airlineKey.id, {
             claims: {
                 request: purchaseRequestVc, // linking original request
                 ticket: ticketVc, // linking newly issued ticket
                 price, // providing additional information about the transaction
             },
         });
-        const responseVc = await responseDraft.issue(airlineKey.id);
-
-        const presentation = await airlineClient.createVpDecorator().issue([ticketVc, responseVc], airlineKey.id);
 
         // Retrieving information about the issuer of the request. We'll use to send the response back
         const { issuer: requesterDid } = await purchaseRequestVc.getMetaData();
 
-        await presentation.send(requesterDid, airlineKey.id);
+        // const presentation = await airlineClient.createVpDecorator().issue([ticketVc, responseVc], airlineKey.id);
+        // await presentation.send(requesterDid, airlineKey.id);
+
+        await airlineClient.didcommMessages.didCommMessageSend({
+            data: {
+                to: requesterDid,
+                keyId: airlineKey.id,
+                credentials: [ticketVc.descriptor.id, responseVc.descriptor.id],
+                files: [(await ticketPaperVersion.dereference()).id],
+            },
+        });
+
+        // Mark the processed purchase request as handled
+        await purchaseRequestVc.update({
+            labels: {
+                processedAt: Date.now().toString(),
+            },
+        });
+
+        console.info(
+            `Purchase request has been successfully processed: ${item.id} (${itemNumber}/${unprocessedRequestsCount})`,
+        );
     }
 }
 
@@ -200,10 +237,12 @@ const { id: airlineDid } = await airlineClient.dids.didDocumentSelfGet();
     const responseClaims = await purchaseResponseVc.getClaims();
 
     // Dereferencing the link to a credential to enable working with its content
-    const purchasedTicketVc = await responseClaims.ticket.dereference();
+    const purchasedTicketVc = await responseClaims.ticket.dereferenceAs(PurchasedTicked);
 
     const ticketClaims = await purchasedTicketVc.getClaims();
+    const ticketPaperVersion = await ticketClaims.paperVersion.dereference();
+    const ticketPaperDocument = await ticketPaperVersion.download();
 
     // Completing the demo
-    console.info(`Last ticket flight number: ${ticketClaims.flightNumber} (price: $${responseClaims.price})`);
+    console.info(`Last ticket: "${ticketPaperDocument.toString('utf8')}" (price: $${responseClaims.price})`);
 }
