@@ -9,7 +9,7 @@
     "start": "node --loader ts-node/esm src/dif-workshop.ts"
   },
   "dependencies": {
-    "@truvity/sdk": "^0.28.9"
+    "@truvity/sdk": "^0.30.7"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",

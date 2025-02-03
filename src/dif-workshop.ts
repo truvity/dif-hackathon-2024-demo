@@ -182,17 +182,8 @@ const { id: airlineDid } = await airlineClient.dids.didDocumentSelfGet();
         // Retrieving information about the issuer of the request. We'll use to send the response back
         const { issuer: requesterDid } = await purchaseRequestVc.getMetaData();
 
-        // const presentation = await airlineClient.createVpDecorator().issue([ticketVc, responseVc], airlineKey.id);
-        // await presentation.send(requesterDid, airlineKey.id);
-
-        await airlineClient.didcommMessages.didCommMessageSend({
-            data: {
-                to: requesterDid,
-                keyId: airlineKey.id,
-                credentials: [ticketVc.descriptor.id, responseVc.descriptor.id],
-                files: [(await ticketPaperVersion.dereference()).id],
-            },
-        });
+        const presentation = await airlineClient.createVpDecorator().issue([ticketVc, responseVc], airlineKey.id);
+        await presentation.send(requesterDid, airlineKey.id);
 
         // Mark the processed purchase request as handled
         await purchaseRequestVc.update({

@@ -38,9 +38,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@truvity/sdk@npm:^0.28.9":
-  version: 0.28.9
-  resolution: "@truvity/sdk@npm:0.28.9"
+"@truvity/sdk@npm:^0.30.7":
+  version: 0.30.7
+  resolution: "@truvity/sdk@npm:0.30.7"
   dependencies:
     form-data: "npm:^4.0.0"
     formdata-node: "npm:^6.0.3"
@@ -50,7 +50,7 @@ __metadata:
     reflect-metadata: "npm:^0.2.2"
     url-join: "npm:4.0.1"
     uuid: "npm:^10.0.0"
-  checksum: 10/75236b2383229f11feb0b37b4ab52d11b279fd5325c130ed3caeb5d856d583d4acc57e42d38f892b849faeaa97da50bd22ad8c9bb69304c9dd87dd96c7e4c693
+  checksum: 10/30c817c4737439e42f3012b59d4ef8483707eb7194ae84f79b7b39accdc7f640dc44482626e5fe63932009258e42f50ed423dc1ead3410f366e987ef1d1c14d3
   languageName: node
   linkType: hard
 
@@ -207,7 +207,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dif-hackathon-2024-demo@workspace:."
   dependencies:
-    "@truvity/sdk": "npm:^0.28.9"
+    "@truvity/sdk": "npm:^0.30.7"
     "@tsconfig/node20": "npm:^20.1.4"
     "@types/node": "npm:~20.10"
     prettier: "npm:^3.3.3"
