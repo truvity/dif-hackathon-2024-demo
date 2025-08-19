@@ -1,11 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.13.3/.schema/devbox.schema.json",
-  "packages": [
-    "nodejs@20.10",
-    "yarn-berry@4.3.1"
-  ],
+  "packages": ["nodejs@22.14"],
   "env": {
-    "DEVBOX_COREPACK_ENABLED": "true",
+    "DEVBOX_COREPACK_ENABLED": "1",
     "TIM_API_KEY": "<API_KEY_1>",
     "AIRLINE_API_KEY": "<API_KEY_2>"
   }
