@@ -1,0 +1,31 @@
+{
+    "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+    "files": {
+        "ignoreUnknown": true,
+        "includes": ["**", "!**/.*"]
+    },
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true
+    },
+    "formatter": {
+        "useEditorconfig": true,
+        "lineWidth": 120
+    },
+    "linter": {
+        "rules": {
+            "style": {
+                "useImportType": "off"
+            }
+        }
+    },
+    "javascript": {
+        "parser": {
+            "unsafeParameterDecoratorsEnabled": true
+        },
+        "formatter": {
+            "quoteStyle": "single"
+        }
+    }
+}

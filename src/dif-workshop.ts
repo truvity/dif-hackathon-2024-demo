@@ -1,12 +1,4 @@
-import {
-    TruvityClient,
-    LinkedCredential,
-    VcContext,
-    VcLinkedCredentialClaim,
-    VcNotEmptyClaim,
-    VcLinkedFileClaim,
-    LinkedFile,
-} from '@truvity/sdk';
+import { LinkedCredential, LinkedFile, TruvityClient, VcContext, VcNotEmptyClaim } from '@truvity/sdk';
 
 // --- Documents schemas ---
 
@@ -31,7 +23,6 @@ class PurchasedTicked {
     flightNumber!: string;
 
     @VcNotEmptyClaim
-    @VcLinkedFileClaim
     paperVersion!: LinkedFile;
 }
 
@@ -41,11 +32,9 @@ class PurchasedTicked {
 })
 class PurchaseResponse {
     @VcNotEmptyClaim
-    @VcLinkedCredentialClaim
     request!: LinkedCredential<PurchaseRequest>;
 
     @VcNotEmptyClaim
-    @VcLinkedCredentialClaim
     ticket!: LinkedCredential<PurchasedTicked>;
 
     @VcNotEmptyClaim
@@ -228,12 +217,13 @@ const { id: airlineDid } = await airlineClient.dids.didDocumentSelfGet();
     const responseClaims = await purchaseResponseVc.getClaims();
 
     // Dereferencing the link to a credential to enable working with its content
-    const purchasedTicketVc = await responseClaims.ticket.dereferenceAs(PurchasedTicked);
+    const purchasedTicketVc = await responseClaims.ticket.dereferenceVerifiableCredentialAs(PurchasedTicked);
 
     const ticketClaims = await purchasedTicketVc.getClaims();
     const ticketPaperVersion = await ticketClaims.paperVersion.dereference();
-    const ticketPaperDocument = await ticketPaperVersion.download();
+    const ticketPaperDocumentBlob = await ticketPaperVersion.download();
+    const ticketPaperDocument = await ticketPaperDocumentBlob.text();
 
     // Completing the demo
-    console.info(`Last ticket: "${ticketPaperDocument.toString('utf8')}" (price: $${responseClaims.price})`);
+    console.info(`Last ticket: "${ticketPaperDocument}" (price: $${responseClaims.price})`);
 }
