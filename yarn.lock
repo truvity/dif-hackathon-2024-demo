@@ -129,13 +129,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@truvity/sdk@npm:^0.38.2":
-  version: 0.38.2
-  resolution: "@truvity/sdk@npm:0.38.2"
+"@truvity/sdk@npm:^0.40.13":
+  version: 0.40.13
+  resolution: "@truvity/sdk@npm:0.40.13"
   dependencies:
+    mem: "npm:^8.1.1"
     reflect-metadata: "npm:^0.2.2"
     uuid: "npm:^10.0.0"
-  checksum: 10/6be702e009355bed0ab18e22cf76b00dea0b0ed0a51660249e62ef5971835789df1ebe19a2561c94e5ca84870984351f91414154a35f994e77783b5a98487636
+  checksum: 10/5ea2c295c05ea3207f6185ff8731c0a910989af0266a0e4b5e5c7aab1d09f5930ce3f7b1cee45f191137e2b38f70bd5f6062abc9d8770755ba234ebb2549a7fc
   languageName: node
   linkType: hard
 
@@ -220,7 +221,7 @@ __metadata:
   resolution: "dif-hackathon-2024-demo@workspace:."
   dependencies:
     "@biomejs/biome": "npm:^2.2.0"
-    "@truvity/sdk": "npm:^0.38.2"
+    "@truvity/sdk": "npm:^0.40.13"
     "@tsconfig/node22": "npm:^22.0.2"
     "@types/node": "npm:~22.14"
     ts-node: "npm:^10.9.2"
@@ -239,6 +240,39 @@ __metadata:
   version: 1.3.6
   resolution: "make-error@npm:1.3.6"
   checksum: 10/b86e5e0e25f7f777b77fabd8e2cbf15737972869d852a22b7e73c17623928fccb826d8e46b9951501d3f20e51ad74ba8c59ed584f610526a48f8ccf88aaec402
+  languageName: node
+  linkType: hard
+
+"map-age-cleaner@npm:^0.1.3":
+  version: 0.1.3
+  resolution: "map-age-cleaner@npm:0.1.3"
+  dependencies:
+    p-defer: "npm:^1.0.0"
+  checksum: 10/cb2804a5bcb3cbdfe4b59066ea6d19f5e7c8c196cd55795ea4c28f792b192e4c442426ae52524e5e1acbccf393d3bddacefc3d41f803e66453f6c4eda3650bc1
+  languageName: node
+  linkType: hard
+
+"mem@npm:^8.1.1":
+  version: 8.1.1
+  resolution: "mem@npm:8.1.1"
+  dependencies:
+    map-age-cleaner: "npm:^0.1.3"
+    mimic-fn: "npm:^3.1.0"
+  checksum: 10/5f22117d8a24775f0a61d333bd7fdbe19f7a9f8dc8ccee66f57ba98aeb4ed67e83cc130c482b78fd6a39887547749d8fe376fc44ca7efa81579ad9d0c0fa5acd
+  languageName: node
+  linkType: hard
+
+"mimic-fn@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "mimic-fn@npm:3.1.0"
+  checksum: 10/f7b167f9115b8bbdf2c3ee55dce9149d14be9e54b237259c4bc1d8d0512ea60f25a1b323f814eb1fe8f5a541662804bcfcfff3202ca58df143edb986849d58db
+  languageName: node
+  linkType: hard
+
+"p-defer@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "p-defer@npm:1.0.0"
+  checksum: 10/1d8fb7138a0ccebb65479160fd93f245303c06c977c976105d75838f7f504a9a6ef11b7e058f98b4c957a6a8df268c616da1ee339285d565f9e5ba00304e027b
   languageName: node
   linkType: hard
 
